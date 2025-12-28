@@ -31,5 +31,5 @@ The TEST.MPF is used to quicky determine if this process works on your machine. 
 [2 Weeks Idle Program](routines/IDLE_2_WEEKS.MPF)
 
 # INSTALL STEPS
-1. Copy the [WARMUP_CYCLE.SPF](subroutines/WARMUP_CYCLE.SPF) file to the SubRoutines folder on your Siemens Controller
+1. Copy the [_N_WARMUP_CYCLE_SPF](subroutines/_N_WARMUP_CYCLE_SPF) file to the SubRoutines folder on your Siemens Controller
 2. Copy each main program (.MPF) onto the Siemens controller

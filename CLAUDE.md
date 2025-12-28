@@ -68,9 +68,9 @@ The codebase uses a two-tier architecture:
    - `routines/FIRST_SPINDLE_RUN_IN.MPF` - Initial break-in procedure (165 min total)
 
 2. **Subroutines (.SPF files)** - Reusable procedures in `subroutines/` folder:
-   - `subroutines/WARMUP_CYCLE.SPF` - Core warmup routine that spins the spindle at specified RPM while executing a movement pattern
+   - `subroutines/_N_WARMUP_CYCLE_SPF` - Core warmup routine that spins the spindle at specified RPM while executing a movement pattern
 
-### WARMUP_CYCLE.SPF - The Core Subroutine
+### _N_WARMUP_CYCLE_SPF - The Core Subroutine
 
 All main programs call `WARMUP_CYCLE(RPM, DURATION)` which:
 - Spins spindle at specified RPM
@@ -112,7 +112,7 @@ M30  ; End of program
 
 Programs must be manually transferred to the Siemens controller:
 
-1. Copy `subroutines/WARMUP_CYCLE.SPF` to the controller's SubRoutines folder
+1. Copy `subroutines/_N_WARMUP_CYCLE_SPF` to the controller's SubRoutines folder
 2. Copy main programs from `routines/` folder (.MPF files) to the controller's main program directory
 3. Run `TEST.MPF` first to validate installation before running other routines
 
@@ -127,7 +127,7 @@ When adjusting warmup parameters in main programs (in `routines/` folder):
 
 ### Modifying Movement Patterns
 
-If changing the movement pattern in `subroutines/WARMUP_CYCLE.SPF`:
+If changing the movement pattern in `subroutines/_N_WARMUP_CYCLE_SPF`:
 - Always use `SUPA` for machine-absolute positioning
 - Maintain safe Z-axis retraction before X/Y moves
 - Test with `routines/TEST.MPF` (short duration cycles) before full warmup runs
@@ -136,6 +136,6 @@ If changing the movement pattern in `subroutines/WARMUP_CYCLE.SPF`:
 ### Safety Considerations
 
 - Monitor for abnormal noise, vibration, or overheating during program execution
-- The WHILE loop in WARMUP_CYCLE.SPF uses `$AC_TIME` (system variable) for timing
+- The WHILE loop in _N_WARMUP_CYCLE_SPF uses `$AC_TIME` (system variable) for timing
 - G4 F5 provides 5-second dwell after spindle start to reach target RPM
 - Z-axis always retracts to 0 before X/Y moves to prevent collisions
