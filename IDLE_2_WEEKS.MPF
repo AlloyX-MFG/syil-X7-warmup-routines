@@ -1,0 +1,25 @@
+; IDLE_2_WEEKS.MPF
+; USE WHEN IDLE FOR 2 WEEKS
+
+; Check for abnormal noise
+; Check for abnormal vibration
+; Check for overheating - if temp rise is more than 20°C (68°F) 
+; reduce speed to 10% max speed (1200 RPM)
+
+G20 G90 G17  ; G20=inch mode, G90=absolute positioning, G17=XY plane
+
+; Move to Machine Home
+G0 SUPA Z0        ; retract Z to machine zero first
+G0 SUPA X0 Y0     ; then move X and Y to machine zero
+
+WARMUP_CYCLE(2400, 600)   ; 20% for 10 min
+WARMUP_CYCLE(4800, 600)   ; 40% for 10 min
+WARMUP_CYCLE(7200, 600)   ; 60% for 10 min
+
+M5                ;spindle stop
+
+; Return to Machine Home
+G0 SUPA Z0        ; retract Z to machine zero
+G0 SUPA X0 Y0     ; move X and Y to machine zero
+
+M30               ;end of program

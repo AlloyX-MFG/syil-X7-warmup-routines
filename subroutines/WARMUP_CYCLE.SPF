@@ -1,0 +1,38 @@
+; ============================================
+; WARMUP_CYCLE.SPF
+; Spindle warmup subroutine for Syil X7 / 828D
+; Parameters: RPM, Duration (seconds)
+; NOTE: All moves use SUPA (machine-absolute)
+; ============================================
+
+PROC WARMUP_CYCLE(REAL _RPM, REAL _DURATION)
+
+DEF REAL START_TIME
+
+M3 S=_RPM
+G4 F5
+
+START_TIME = $AC_TIME
+
+WHILE ($AC_TIME - START_TIME) < _DURATION DO
+  
+  ; 90-degree moves (machine-absolute)
+  G1 SUPA Z-4 F30
+  G1 SUPA X5
+  G1 SUPA Y5
+  G1 SUPA Z0
+  G1 SUPA X0
+  G1 SUPA Y0
+  
+  ; 45-degree diagonal moves (machine-absolute)
+  G1 SUPA X5 Y5
+  G1 SUPA Z-4
+  G1 SUPA X0 Y0
+  G1 SUPA Z0
+  G1 SUPA Y5
+  G1 SUPA X5 Y0
+  G1 SUPA X0
+  
+ENDWHILE
+
+RET
