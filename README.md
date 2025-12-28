@@ -15,7 +15,11 @@ See User Manual section 25.17 for a list of each
 [Break In / Run In Program](FIRST_SPINDLE_RUN_IN.MPF)
 
 # Warmup Routine
-Before using the machine each day the spindle requires a warmup procedure.  Our procedure uses the recommended spindle speeds and times stamped on the front of the spindle.  In addition we run a pattern on the X and Y (table) to warm up the other motors.  The following routines are for idle time that has passed since last using the machine.  
+Before using the machine each day the spindle requires a warmup procedure.  Our procedure uses the recommended spindle speeds and times stamped on the front of the spindle.  In addition we run a pattern on the X and Y (table) to warm up the other motors.  The following routines are for idle time that has passed since last using the machine. 
+
+## TEST File
+The TEST.MPF is used to quicky determine if this process works on your machine.  Run this first to determine if the programs work for your use case.  
+[TEST Program](TEST.MPF)
 
 ## Daily Warmup program
 [Daily Program](DAILY.MPF)

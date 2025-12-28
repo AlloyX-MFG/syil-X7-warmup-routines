@@ -1,0 +1,19 @@
+; TEST.MPF
+; Test this routine before running other routines
+
+G20 G90 G17  ; G20=inch mode, G90=absolute positioning, G17=XY plane
+
+; Move to Machine Home
+G0 SUPA Z0        ; retract Z to machine zero first
+G0 SUPA X0 Y0     ; then move X and Y to machine zero
+
+WARMUP_CYCLE(3600, 5)   ; 30% for 5 sec
+WARMUP_CYCLE(7200, 5)   ; 60% for 5 sec
+
+M5                      ;SPINDLE STOP
+
+; Return to Machine Home
+G0 SUPA Z0        ; retract Z to machine zero
+G0 SUPA X0 Y0     ; move X and Y to machine zero
+
+M30                ;end of program
