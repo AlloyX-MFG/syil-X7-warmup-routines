@@ -1,6 +1,8 @@
 ; TEST.MPF
 ; Test this routine before running other routines
 
+EXTERN WARMUP_CYCLE(REAL, REAL)
+
 G70 G90 G17  ; G70=inch mode (Siemens), G90=absolute positioning, G17=XY plane
 
 ; Move to Machine Home
