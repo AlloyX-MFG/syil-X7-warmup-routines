@@ -1,0 +1,46 @@
+; ============================================
+; WARMUP_CYCLE.SPF
+; Spindle warmup subroutine for Syil X7 / 828D
+; Parameters: RPM, Duration (seconds)
+; NOTE: All moves use SUPA (machine-absolute)
+; NOTE: Each cycle takes approx 3 seconds @ F100
+; ============================================
+
+PROC WARMUP_CYCLE(REAL _RPM, REAL _DURATION)
+
+DEF INT CYCLES
+DEF INT COUNT
+
+G700         ; Feedrate in inches/min
+
+M3 S=_RPM
+
+; Calculate number of cycles (approximate - each cycle ~10 sec @ F300)
+; For durations less than 10 sec, run at least 1 cycle
+CYCLES = _DURATION / 10
+IF CYCLES < 1
+  CYCLES = 1
+ENDIF
+
+FOR COUNT = 1 TO CYCLES
+
+  ; 90-degree moves (machine-absolute)
+  G1 SUPA Z-4 F300
+  G1 SUPA X5
+  G1 SUPA Y5
+  G1 SUPA Z0
+  G1 SUPA X0
+  G1 SUPA Y0
+  
+  ; 45-degree diagonal moves (machine-absolute)
+  G1 SUPA X5 Y5
+  G1 SUPA Z-4
+  G1 SUPA X0 Y0
+  G1 SUPA Z0
+  G1 SUPA Y5
+  G1 SUPA X5 Y0
+  G1 SUPA X0
+
+ENDFOR
+
+RET
