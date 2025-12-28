@@ -19,4 +19,4 @@ M5                      ;SPINDLE STOP
 G0 SUPA Z0        ; retract Z to machine zero (top of travel)
 G0 SUPA X0 Y0     ; move X and Y to position 1
 
-M30                ;end of program
+M02                ;end of program

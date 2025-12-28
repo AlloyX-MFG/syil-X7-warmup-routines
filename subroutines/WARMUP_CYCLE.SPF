@@ -14,11 +14,10 @@ DEF INT COUNT
 G700         ; Feedrate in inches/min
 
 M3 S=_RPM
-G4 F5
 
-; Calculate number of cycles (approximate - each cycle ~3 sec @ F100)
-; For durations less than 3 sec, run at least 1 cycle
-CYCLES = _DURATION / 3
+; Calculate number of cycles (approximate - each cycle ~10 sec @ F300)
+; For durations less than 10 sec, run at least 1 cycle
+CYCLES = _DURATION / 10
 IF CYCLES < 1
   CYCLES = 1
 ENDIF
@@ -26,7 +25,7 @@ ENDIF
 FOR COUNT = 1 TO CYCLES
 
   ; 90-degree moves (machine-absolute)
-  G1 SUPA Z-4 F100
+  G1 SUPA Z-4 F300
   G1 SUPA X5
   G1 SUPA Y5
   G1 SUPA Z0
