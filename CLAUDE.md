@@ -10,14 +10,49 @@ This repository contains CNC machine warmup and break-in programs for the **Syil
 
 ## Documentation Reference
 
-**CRITICAL**: Always refer to `Siemens Programming Guide 828D.pdf` when working with G-code commands. This document contains the authoritative reference for:
+**CRITICAL**: Always refer to `Siemens_Programming_Guide_828D.md` when working with G-code commands. This document contains the authoritative reference for:
 - Valid G-code and M-code commands for the Siemens Sinumerik 828D controller
 - Exact syntax and parameter requirements for each command
 - System variables (e.g., `$AC_TIME`)
 - Programming keywords (e.g., `SUPA`, `PROC`, `RET`)
 - Controller-specific features and limitations
 
-Before modifying any code or adding new commands, verify the command syntax and behavior in the PDF to ensure correctness and prevent machine errors.
+Before modifying any code or adding new commands, verify the command syntax and behavior in the documentation to ensure correctness and prevent machine errors.
+
+### How to Search the Programming Guide
+
+**IMPORTANT**: The `Siemens_Programming_Guide_828D.md` file is VERY LARGE (870KB, 590 pages). **DO NOT read the entire file** as it will consume excessive context and slow down your response.
+
+**ALWAYS use intelligent search tools** to find specific information:
+
+1. **Use grep for keyword searches:**
+   ```bash
+   grep -i "keyword" Siemens_Programming_Guide_828D.md
+   grep -A 5 -B 2 "G-code" Siemens_Programming_Guide_828D.md  # Include context lines
+   ```
+
+2. **Use grep with regular expressions for patterns:**
+   ```bash
+   grep -E "G[0-9]{1,3}" Siemens_Programming_Guide_828D.md  # Find G-codes
+   grep -E "\$AC_[A-Z_]+" Siemens_Programming_Guide_828D.md  # Find system variables
+   ```
+
+3. **Use awk/sed for structured extraction:**
+   ```bash
+   awk '/## Page [0-9]+/,/---/' Siemens_Programming_Guide_828D.md  # Extract specific pages
+   ```
+
+4. **Combine tools for precise searches:**
+   ```bash
+   grep -i "SUPA" Siemens_Programming_Guide_828D.md | head -20  # Find first 20 SUPA references
+   ```
+
+**Search Strategy:**
+- Start with targeted grep searches for specific commands, keywords, or syntax
+- Use `-i` flag for case-insensitive searches
+- Use `-A` (after) and `-B` (before) flags to get context around matches
+- Pipe results through `head` or `tail` to limit output
+- Only read specific sections after identifying relevant page numbers
 
 ## Code Architecture
 
