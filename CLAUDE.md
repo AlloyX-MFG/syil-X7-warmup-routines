@@ -68,53 +68,107 @@ The codebase uses a two-tier architecture:
    - `routines/FIRST_SPINDLE_RUN_IN.MPF` - Initial break-in procedure (165 min total)
 
 2. **Subroutines (.SPF files)** - Reusable procedures in `subroutines/` folder:
-   - `subroutines/_N_WARMUP_CYCLE_SPF` - Core warmup routine that spins the spindle at specified RPM while executing a movement pattern
+   - `subroutines/WARMUP_CYCLE.SPF` - Core warmup routine that spins the spindle at specified RPM while executing a movement pattern
 
-### _N_WARMUP_CYCLE_SPF - The Core Subroutine
+### WARMUP_CYCLE.SPF - The Core Subroutine
 
 All main programs call `WARMUP_CYCLE(RPM, DURATION)` which:
 - Spins spindle at specified RPM
 - Executes timed movement pattern (90° moves + 45° diagonal moves)
 - Uses **SUPA (machine-absolute positioning)** for all moves
-- Pattern coordinates: X0-5, Y0-5, Z0 to -4 (inches)
+- Pattern coordinates: X0 to X-5, Y0 to Y-5, Z0 to Z-4 (inches, negative direction from machine zero)
 - Pattern repeats until duration (seconds) elapses
 
-### G-code Conventions
+### G-code Conventions and Critical Syntax Rules
 
 All programs follow these patterns:
 
-**Initialization:**
+**MPF Main Program Structure (REQUIRED):**
 ```gcode
-G70 G90 G17  ; G70=inch mode, G90=absolute positioning, G17=XY plane
-```
+; Program comments
 
-**Safe homing sequence:**
-```gcode
+EXTERN WARMUP_CYCLE(REAL, REAL)  ; REQUIRED for calling PROC with parameters
+
+G70 G90 G17  ; G70=inch mode (positions only), G90=absolute, G17=XY plane
+G700         ; G700=feedrate in inches/min (CRITICAL - G70 does NOT affect feedrate)
+
+; Safe homing sequence
 G0 SUPA Z0        ; Retract Z to machine zero FIRST (avoid collisions)
 G0 SUPA X0 Y0     ; Then move X and Y to machine zero
-```
 
-**SUPA keyword:** All positioning uses `SUPA` (machine-absolute coordinates) to ensure consistent behavior regardless of work coordinate offsets.
+WARMUP_CYCLE(3600, 600)  ; Subroutine calls
 
-**Program termination:**
-```gcode
 M5   ; Spindle stop
-M30  ; End of program
+M02  ; End of program (use M02, not M30 for this controller)
 ```
+
+**SPF Subroutine Structure (REQUIRED):**
+```gcode
+PROC WARMUP_CYCLE(REAL _RPM, REAL _DURATION)
+
+DEF INT CYCLES
+DEF INT COUNT
+DEF REAL START_TIME
+DEF REAL END_TIME
+DEF REAL ELAPSED_TIME
+
+G700  ; Feedrate in inches/min
+
+M3 S=_RPM
+
+; Capture start time (MUST use DO keyword with $AC_TIME)
+DO START_TIME=$AC_TIME
+
+; Loop logic using FOR (NOT WHILE)
+FOR COUNT = 1 TO CYCLES
+  ; Movement commands
+  G1 SUPA Z-4 F100
+  ; ... more moves
+ENDFOR
+
+; Capture end time and calculate actual elapsed time
+DO END_TIME=$AC_TIME
+ELAPSED_TIME = END_TIME - START_TIME
+
+MSG("Warmup cycle complete - Actual time: "<<ELAPSED_TIME<<" seconds")
+
+RET  ; REQUIRED - Returns from PROC (NOT ENDPROC or M17)
+```
+
+**CRITICAL Syntax Rules:**
+
+1. **EXTERN Declaration**: REQUIRED in MPF files before calling PROC subroutines with parameters
+2. **Feedrate Units**:
+   - `G70` = Position coordinates in inches
+   - `G700` = Feedrate in inches/min (MUST be specified separately)
+   - `G71` = Position coordinates in mm
+   - `G710` = Feedrate in mm/min
+3. **PROC Termination**: Use `RET` (NOT `ENDPROC` or `M17`)
+4. **Main Program Termination**: Use `M02` (NOT `M30` on this controller)
+5. **Loop Structures**: Use `FOR...ENDFOR` (NOT `WHILE...ENDWHILE`)
+6. **System Variables**: `$AC_TIME` can ONLY be used with `DO` keyword (e.g., `DO START_TIME=$AC_TIME`) to capture actual execution time in seconds
+7. **SUPA Positioning**: All positioning uses `SUPA` (machine-absolute coordinates)
+8. **Z-Axis Limits**: With SUPA, Z must be ≤ 0 (Z0 = machine zero, positive Z violates upper software limit)
+9. **Output Messages**: Use `MSG("text"<<variable<<)` to display messages with variables. Example: `MSG("Total time: "<<_DURATION<<" seconds")`
 
 ## Machine-Specific Parameters
 
 - **Max spindle speed**: 12,000 RPM
 - **Critical safety check**: Monitor temperature rise during warmup. If >20°C (68°F), reduce to 1200 RPM (10% max)
-- **Movement envelope**: Programs assume safe travel in X0-5", Y0-5", Z0 to -4"
+- **Movement envelope**: Programs assume safe travel in X0 to X-5, Y0 to Y-5, Z0 to Z-4 (inches, negative direction from machine zero)
 
 ## Deployment
 
 Programs must be manually transferred to the Siemens controller:
 
-1. Copy `subroutines/_N_WARMUP_CYCLE_SPF` to the controller's SubRoutines folder
+1. Copy `subroutines/WARMUP_CYCLE.SPF` to the controller's Subprograms folder (same directory as MPF files)
 2. Copy main programs from `routines/` folder (.MPF files) to the controller's main program directory
 3. Run `TEST.MPF` first to validate installation before running other routines
+
+**File Naming:**
+- Main programs: `FILENAME.MPF`
+- Subroutines: `FILENAME.SPF`
+- Controller may internally rename to `_N_FILENAME_MPF` or `_N_FILENAME_SPF` format
 
 ## Development Guidelines
 
@@ -127,15 +181,32 @@ When adjusting warmup parameters in main programs (in `routines/` folder):
 
 ### Modifying Movement Patterns
 
-If changing the movement pattern in `subroutines/_N_WARMUP_CYCLE_SPF`:
+If changing the movement pattern in `subroutines/WARMUP_CYCLE.SPF`:
 - Always use `SUPA` for machine-absolute positioning
+- **Z-axis restrictions**: Use Z0 or negative values only (positive Z violates upper limit with SUPA)
 - Maintain safe Z-axis retraction before X/Y moves
+- Set appropriate feedrate with `F` value (e.g., F100 = 100 inches/min with G700)
 - Test with `routines/TEST.MPF` (short duration cycles) before full warmup runs
 - Verify moves stay within machine travel limits
 
 ### Safety Considerations
 
 - Monitor for abnormal noise, vibration, or overheating during program execution
-- The WHILE loop in _N_WARMUP_CYCLE_SPF uses `$AC_TIME` (system variable) for timing
+- The FOR loop in WARMUP_CYCLE.SPF uses counter-based timing (approximate)
 - G4 F5 provides 5-second dwell after spindle start to reach target RPM
-- Z-axis always retracts to 0 before X/Y moves to prevent collisions
+- Z-axis always retracts to 0 (or safe negative value) before X/Y moves to prevent collisions
+- Software limit switches prevent movement beyond safe boundaries
+
+### Common Errors and Solutions
+
+**"Illegal End of Program"**: Use `M02` instead of `M30` in main programs
+
+**"Illegal End of File"**: Use `RET` (not `ENDPROC` or `M17`) to end PROC subroutines
+
+**"Software Switch Violated"**: Z-axis with SUPA must be ≤ 0 (no positive Z values)
+
+**"File Not Found" for subroutine**: Ensure WARMUP_CYCLE.SPF is in same directory as MPF files, add `EXTERN` declaration
+
+**Slow feedrate**: Verify `G700` is set (G70 only affects position coordinates, not feedrate)
+
+**Syntax error in DO statement**: `$AC_TIME` can only be used with `DO` keyword (e.g., `DO START_TIME=$AC_TIME`), not in regular variable assignments like `START_TIME = $AC_TIME`
