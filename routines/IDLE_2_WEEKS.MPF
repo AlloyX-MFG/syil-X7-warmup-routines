@@ -8,7 +8,7 @@
 
 EXTERN WARMUP_CYCLE(REAL, REAL)
 
-G70 G90 G17  ; G70=inch mode (Siemens), G90=absolute positioning, G17=XY plane
+G70 G90 G17  ; G70=inch mode Siemens, G90=absolute positioning, G17=XY plane
 G700         ; G700=feedrate in inches/min
 
 ; Move to Machine Home
